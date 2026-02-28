@@ -1,14 +1,15 @@
 /**
  * Abstract Base MCP Client
  *
- * Matched to memory-bank-mcp server v0.5.0+:
+ * Matched to memory-bank-mcp server v1.10.0 (36 consolidated tools).
  * - get_memory_bank_status returns flat JSON
  * - list_memory_bank_files returns plain text
- * - get_current_mode returns multi-line text "Current mode: <mode>\n..."
+ * - switch_mode (no params) returns current mode info
  * - initialize_memory_bank requires {path}
  * - update_active_context accepts {tasks?, issues?, nextSteps?}
- * - Graph tools available: graph_search, graph_open_nodes, graph_upsert_entity,
- *   graph_add_observation, graph_link_entities
+ * - graph_link_entities supports action:"unlink" to remove
+ * - graph_delete_entity supports observationId to delete specific obs
+ * - graph_maintain replaces graph_rebuild/graph_compact
  */
 
 import {
@@ -68,12 +69,13 @@ export abstract class BaseMcpClient implements IMcpClient {
   }
 
   /**
+   * Uses switch_mode with no params to retrieve current mode info.
    * Server returns: "Current mode: code\nMemory Bank status: active\nUMB mode active: No"
    * We parse to extract just the mode name.
    */
   async getCurrentMode(): Promise<string> {
     try {
-      const result = await this.callTool<string>('get_current_mode', {});
+      const result = await this.callTool<string>('switch_mode', {});
       const text = typeof result === 'string' ? result : String(result);
       const match = text.match(/^Current mode:\s*(\w+)/i);
       if (match) {
@@ -189,13 +191,13 @@ export abstract class BaseMcpClient implements IMcpClient {
   }
 
   async graphDeleteObservation(params: GraphDeleteObservationParams): Promise<unknown> {
-    return await this.callTool('graph_delete_observation', {
+    return await this.callTool('graph_delete_entity', {
       observationId: params.observationId,
     });
   }
 
   async graphCompact(): Promise<unknown> {
-    return await this.callTool('graph_compact', {});
+    return await this.callTool('graph_maintain', { operation: 'compact' });
   }
 
   // ---------- Digest ----------

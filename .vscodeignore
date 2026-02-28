@@ -3,9 +3,15 @@
 src/**
 out/**
 node_modules/**
+memory-bank/**
+backup-icons/**
+.github/**
 .gitignore
+.eslintrc*
 tsconfig.json
 esbuild.js
+vitest.config.ts
 *.map
 **/*.ts
 !dist/**
+!resources/**

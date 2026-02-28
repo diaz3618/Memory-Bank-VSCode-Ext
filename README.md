@@ -16,6 +16,7 @@ A Visual Studio Code extension that provides seamless integration with the Memor
 - **Knowledge Graph**: Browse entities, observations, and relationships
 - **Multi-Store Support**: Manage multiple Memory Banks per project
 - **Remote Servers**: Connect to SSH-based Memory Banks on remote machines
+- **API Keys**: Create, revoke, rotate, and manage API keys (HTTP mode)
 
 ### GitHub Copilot Integration
 
@@ -35,25 +36,28 @@ A Visual Studio Code extension that provides seamless integration with the Memor
 
 ## Installation
 
-### From VSIX (Recommended)
+### From VS Code Marketplace
 
-1. Go to the [VS Code Extension releases](https://github.com/diaz3618/memory-bank-mcp/releases?q=vscode-v) (look for tags starting with `vscode-v`)
+Search for **"Memory Bank MCP"** in the Extensions view (`Ctrl+Shift+X`) or install from:
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=diaz3618.memory-bank-mcp)
+
+### From VSIX
+
+1. Go to the [Releases](https://github.com/diaz3618/Memory-Bank-VSCode-Ext/releases) page
 2. Download the `.vsix` file from the latest release
 3. In VS Code: `Ctrl+Shift+P` → **Extensions: Install from VSIX...**
 4. Select the downloaded `.vsix` file
 
-Or right-click the `.vsix` file and select **Install Extension VSIX**
-
 ### From Source
 
 ```bash
-cd vscode-extension
+git clone https://github.com/diaz3618/Memory-Bank-VSCode-Ext.git
+cd Memory-Bank-VSCode-Ext
 npm install
-npm run compile
-npm run package
+npm run build
 ```
 
-Then install the `.vsix` file.
+Then install the generated `.vsix` file.
 
 ## Quick Start
 
@@ -174,7 +178,8 @@ All commands available via `Ctrl+Shift+P` → "Memory Bank:":
 - Initialize Memory Bank
 - Install MCP Server
 - Configure MCP Server
-- Create Copilot Agent Instructions
+- Create Copilot Agent Instructions (stdio)
+- Create Copilot Agent Instructions (HTTP)
 
 **Operations:**
 
@@ -200,6 +205,16 @@ All commands available via `Ctrl+Shift+P` → "Memory Bank:":
 - Add Remote Server
 - Refresh Remote Servers
 
+**API Keys (HTTP mode):**
+
+- Create API Key
+- List API Keys
+- Revoke API Key
+- Rotate API Key
+- Export API Keys
+- Edit Label
+- Search API Keys
+
 ## Configuration
 
 The extension uses `.vscode/mcp.json` to configure the MCP server connection:
@@ -224,18 +239,46 @@ The extension uses `.vscode/mcp.json` to configure the MCP server connection:
 
 Currently, the extension uses default settings. Configuration options may be added in future releases.
 
-## HTTP Variant (Feature Branch)
+## HTTP Variant
 
-An HTTP variant of the Memory Bank MCP server is available on the [`feature/http-postgres-redis-supabase`](https://github.com/diaz3618/memory-bank-mcp/tree/feature/http-postgres-redis-supabase) branch. This variant uses HTTP Streamable transport with Postgres/Supabase storage and Redis caching — deployed via Docker.
+An HTTP variant of the Memory Bank MCP server is available as a separate package. It uses HTTP Streamable transport with Postgres/Supabase storage and Redis caching — deployed via Docker.
 
-> **Note:** This HTTP stack is branch-specific and not part of the mainline npm release.
+- **NPM Package**: [@diazstg/memory-bank-mcp-http](https://www.npmjs.com/package/@diazstg/memory-bank-mcp-http)
+- **Repository**: [github.com/diaz3618/memory-bank-mcp-http](https://github.com/diaz3618/memory-bank-mcp-http)
 
 ### Docker Images
 
+Both the stdio (npmjs) and HTTP servers are available as Docker images on Docker Hub and GitHub Container Registry:
+
+#### Stdio Server (npmjs)
+
 | Registry | Image | Link |
 |----------|-------|------|
-| Docker Hub | `diaz3618/memory-bank-mcp:latest-http` | [hub.docker.com/r/diaz3618/memory-bank-mcp](https://hub.docker.com/r/diaz3618/memory-bank-mcp) |
-| GHCR | `ghcr.io/diaz3618/memory-bank-mcp:latest-http` | [GitHub Packages](https://github.com/diaz3618/memory-bank-mcp/pkgs/container/memory-bank-mcp) |
+| Docker Hub | `diaz3618/memory-bank-mcp` | [hub.docker.com/r/diaz3618/memory-bank-mcp](https://hub.docker.com/r/diaz3618/memory-bank-mcp) |
+| GHCR | `ghcr.io/diaz3618/memory-bank-mcp` | [GitHub Packages](https://github.com/diaz3618/memory-bank-mcp/pkgs/container/memory-bank-mcp) |
+
+```bash
+# Docker Hub
+docker pull diaz3618/memory-bank-mcp:latest
+
+# GitHub Container Registry
+docker pull ghcr.io/diaz3618/memory-bank-mcp:latest
+```
+
+#### HTTP Server
+
+| Registry | Image | Link |
+|----------|-------|------|
+| Docker Hub | `diaz3618/memory-bank-mcp-http` | [hub.docker.com/r/diaz3618/memory-bank-mcp-http](https://hub.docker.com/r/diaz3618/memory-bank-mcp-http) |
+| GHCR | `ghcr.io/diaz3618/memory-bank-mcp-http` | [GitHub Packages](https://github.com/diaz3618/memory-bank-mcp-http/pkgs/container/memory-bank-mcp-http) |
+
+```bash
+# Docker Hub
+docker pull diaz3618/memory-bank-mcp-http:latest
+
+# GitHub Container Registry
+docker pull ghcr.io/diaz3618/memory-bank-mcp-http:latest
+```
 
 ### HTTP MCP Configuration
 
@@ -259,7 +302,7 @@ To connect to the HTTP variant, use this `.vscode/mcp.json` configuration:
 
 - If not behind Traefik, connect directly to port 3100: `http://localhost:3100/mcp`
 - Auth header options: `Authorization: Bearer <key>` or `X-API-Key: <key>`
-- See the [HTTP deployment guide](https://github.com/diaz3618/memory-bank-mcp/blob/feature/http-postgres-redis-supabase/docs/deployment/http-postgres-redis-supabase.md) for full setup instructions
+- See the [HTTP deployment guide](https://github.com/diaz3618/memory-bank-mcp-http#deployment) for full setup instructions
 
 ## GitHub Copilot Integration
 
@@ -313,8 +356,16 @@ The extension failed to activate. Check:
 
 ## Links
 
-- **MCP Server Repository**: [github.com/diaz3618/memory-bank-mcp](https://github.com/diaz3618/memory-bank-mcp)
-- **NPM Package**: [@diazstg/memory-bank-mcp](https://www.npmjs.com/package/@diazstg/memory-bank-mcp)
+- **VS Code Marketplace**: [Memory Bank MCP](https://marketplace.visualstudio.com/items?itemName=diaz3618.memory-bank-mcp)
+- **Extension Repository**: [github.com/diaz3618/Memory-Bank-VSCode-Ext](https://github.com/diaz3618/Memory-Bank-VSCode-Ext)
+- **MCP Server (stdio)**: [github.com/diaz3618/memory-bank-mcp](https://github.com/diaz3618/memory-bank-mcp)
+- **MCP Server (HTTP)**: [github.com/diaz3618/memory-bank-mcp-http](https://github.com/diaz3618/memory-bank-mcp-http)
+- **NPM (stdio)**: [@diazstg/memory-bank-mcp](https://www.npmjs.com/package/@diazstg/memory-bank-mcp)
+- **NPM (HTTP)**: [@diazstg/memory-bank-mcp-http](https://www.npmjs.com/package/@diazstg/memory-bank-mcp-http)
+- **Docker Hub (stdio)**: [diaz3618/memory-bank-mcp](https://hub.docker.com/r/diaz3618/memory-bank-mcp)
+- **Docker Hub (HTTP)**: [diaz3618/memory-bank-mcp-http](https://hub.docker.com/r/diaz3618/memory-bank-mcp-http)
+- **GHCR (stdio)**: [ghcr.io/diaz3618/memory-bank-mcp](https://github.com/diaz3618/memory-bank-mcp/pkgs/container/memory-bank-mcp)
+- **GHCR (HTTP)**: [ghcr.io/diaz3618/memory-bank-mcp-http](https://github.com/diaz3618/memory-bank-mcp-http/pkgs/container/memory-bank-mcp-http)
 
 ## License
 

@@ -126,11 +126,11 @@ class MemoryBankInstructionsTool implements vscode.LanguageModelTool<ToolInput> 
     }
 
     // ── Tool reference (compact table) ─────────────────────────────
-    parts.push('## MCP Tool Reference');
-    parts.push('**Context:** get_context_digest, get_context_bundle, get_memory_bank_status, read/write_memory_bank_file, batch_read/write_files, search_memory_bank');
+    parts.push('## MCP Tool Reference (36 tools)');
+    parts.push('**Context:** get_instructions, get_context_digest, get_context_bundle, get_memory_bank_status, read/write_memory_bank_file, batch_read/write_files, search_memory_bank, list_memory_bank_files');
     parts.push('**Progress:** track_progress, add_progress_entry, update_active_context, update_tasks, add_session_note, log_decision');
-    parts.push('**Graph:** graph_search, graph_open_nodes, graph_upsert_entity, graph_add_observation, graph_link/unlink_entities, graph_delete_entity, graph_compact');
-    parts.push('**Other:** switch_mode, get_current_mode, list_stores, select_store, initialize_memory_bank, create/restore_backup');
+    parts.push('**Graph:** get_targeted_context, graph_search, graph_open_nodes, graph_upsert_entity, graph_add_observation, graph_add_doc_pointer, graph_link_entities (action:"unlink" to remove), graph_delete_entity (observationId to delete obs), graph_maintain (rebuild/compact/stats)');
+    parts.push('**Other:** switch_mode (no params=get mode, umb:true/false), list_stores, select_store (select/register/unregister), initialize_memory_bank, set_memory_bank_path, migrate_file_naming, debug_mcp_config, create_backup (listOnly:true to list), restore_backup, sequential_thinking (reset:true to clear), finalize_thinking_session');
     parts.push('');
     parts.push('## Valid Modes');
     parts.push('Only 5 modes exist: **architect**, **code**, **ask**, **debug**, **test**.');

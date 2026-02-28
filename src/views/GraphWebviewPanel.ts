@@ -274,7 +274,7 @@ export class GraphWebviewPanel implements vscode.Disposable {
 
   private async handleRebuild(): Promise<void> {
     const client = await ext.mcpClientManager.getClient();
-    await client.callTool('graph_rebuild', {});
+    await client.callTool('graph_maintain', { operation: 'rebuild' });
     // Reload graph after rebuild
     await this.loadInitialData();
     vscode.window.showInformationMessage('Graph rebuilt successfully');

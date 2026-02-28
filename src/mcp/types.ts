@@ -1,16 +1,25 @@
 /**
  * MCP Client Types for Memory Bank
  * 
- * Server: @diazstg/memory-bank-mcp v0.5.0
- * Available tools: initialize_memory_bank, set_memory_bank_path, debug_mcp_config,
- *   read_memory_bank_file, write_memory_bank_file, list_memory_bank_files,
- *   get_memory_bank_status, migrate_file_naming, track_progress,
- *   update_active_context, log_decision, switch_mode, get_current_mode,
- *   process_umb_command, complete_umb
+ * Server: @diazstg/memory-bank-mcp v1.10.0 (36 consolidated tools)
  * 
- * Graph tools (v0.5.0+): graph_upsert_entity, graph_add_observation,
- *   graph_link_entities, graph_unlink_entities, graph_search,
- *   graph_open_nodes, graph_rebuild
+ * Core: get_instructions, initialize_memory_bank, set_memory_bank_path,
+ *   debug_mcp_config, read_memory_bank_file, write_memory_bank_file,
+ *   list_memory_bank_files, get_memory_bank_status, migrate_file_naming,
+ *   batch_read_files, batch_write_files, search_memory_bank,
+ *   get_context_bundle, get_context_digest
+ * Progress: track_progress, add_progress_entry, update_active_context,
+ *   update_tasks, add_session_note, log_decision
+ * Mode: switch_mode (consolidated: get mode, switch, UMB on/off)
+ * Graph: graph_upsert_entity, graph_add_observation,
+ *   graph_link_entities (action:"unlink" to remove),
+ *   graph_search, graph_open_nodes,
+ *   graph_delete_entity (observationId to delete obs),
+ *   graph_maintain (rebuild/compact/stats),
+ *   get_targeted_context, graph_add_doc_pointer
+ * Stores: list_stores, select_store (select/register/unregister)
+ * Backup: create_backup (listOnly:true to list), restore_backup
+ * Thinking: sequential_thinking (reset:true to clear), finalize_thinking_session
  */
 
 // Core MCP Types

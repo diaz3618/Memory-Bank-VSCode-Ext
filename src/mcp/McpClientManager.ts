@@ -5,7 +5,6 @@
  */
 
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as jsonc from 'jsonc-parser';
 import { ConnectionConfig, ConnectionStatus, IMcpClient } from './types';
 import { StdioMcpClient } from './StdioMcpClient';
@@ -74,19 +73,23 @@ export class McpClientManager implements vscode.Disposable {
    * Resolve connection config. Returns null if no config is found
    * (no .vscode/mcp.json, no explicit settings). The extension must
    * NOT auto-connect with a blind npx fallback.
+   *
+   * Priority order:
+   *   1. .vscode/mcp.json  (supports both stdio and http entries)
+   *   2. VS Code settings   (memoryBank.connectionMode + sub-settings)
    */
   getConnectionConfig(): ConnectionConfig | null {
+    // Priority 1: .vscode/mcp.json — works for BOTH stdio and HTTP configs
+    const mcpJsonConfig = this.readMcpJsonConfig();
+    if (mcpJsonConfig) {
+      return mcpJsonConfig;
+    }
+
+    // Priority 2: User-explicit VS Code settings
     const config = vscode.workspace.getConfiguration('memoryBank');
     const mode = config.get<string>('connectionMode', 'stdio');
 
     if (mode === 'stdio') {
-      // Priority 1: .vscode/mcp.json (shared with Copilot / VS Code MCP)
-      const mcpJsonConfig = this.readMcpJsonConfig();
-      if (mcpJsonConfig) {
-        return mcpJsonConfig;
-      }
-
-      // Priority 2: User-explicit settings (workspace or global, NOT defaults)
       const inspection = config.inspect<string>('stdio.command');
       const hasExplicitCommand =
         inspection?.workspaceValue !== undefined ||
@@ -118,10 +121,15 @@ export class McpClientManager implements vscode.Disposable {
     }
 
     if (mode === 'http') {
-      const baseUrl = config.get<string>('http.baseUrl', '');
+      let baseUrl = config.get<string>('http.baseUrl', '');
       if (!baseUrl) {
         ext.outputChannel.appendLine('HTTP mode configured but no baseUrl set.');
         return null;
+      }
+      // Ensure URL ends with /mcp — it's the MCP endpoint
+      baseUrl = baseUrl.replace(/\/$/, '');
+      if (!baseUrl.endsWith('/mcp')) {
+        baseUrl += '/mcp';
       }
       return {
         mode: 'http',
@@ -135,22 +143,44 @@ export class McpClientManager implements vscode.Disposable {
 
   /**
    * Read memory-bank-mcp server config from .vscode/mcp.json if it exists.
+   * Supports both stdio (`command` + `args`) and HTTP (`type: "http"` + `url`).
    */
-  private readMcpJsonConfig(): ConnectionConfig | null {
+  readMcpJsonConfig(): ConnectionConfig | null {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) { return null; }
 
     try {
       const mcpJsonPath = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', 'mcp.json');
       // Use fs.readFileSync since we need this synchronously during config reading
+      const fs = require('fs');
       const raw = fs.readFileSync(mcpJsonPath.fsPath, 'utf-8');
       // Use jsonc-parser to safely handle // and /* */ comments in mcp.json
       const parsed = jsonc.parse(raw);
       const server = parsed?.servers?.['memory-bank-mcp'];
+      if (!server) { return null; }
 
-      if (server && server.command) {
+      // HTTP mode: { "type": "http", "url": "...", "headers": { "Authorization": "Bearer ..." } }
+      if (server.type === 'http' && server.url) {
+        let authToken = '';
+        const authHeader: unknown = server.headers?.Authorization || server.headers?.authorization;
+        if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+          authToken = authHeader.slice(7);
+        }
+
         ext.outputChannel.appendLine(
-          `Using memory-bank-mcp config from .vscode/mcp.json: ${server.command} ${(server.args || []).join(' ')}`
+          `Using HTTP config from .vscode/mcp.json: ${server.url}`
+        );
+        return {
+          mode: 'http',
+          baseUrl: server.url, // use the full URL as-is — it's the MCP endpoint
+          authToken,
+        };
+      }
+
+      // stdio mode: { "command": "...", "args": [...] }
+      if (server.command) {
+        ext.outputChannel.appendLine(
+          `Using stdio config from .vscode/mcp.json: ${server.command} ${(server.args || []).join(' ')}`
         );
         return {
           mode: 'stdio',

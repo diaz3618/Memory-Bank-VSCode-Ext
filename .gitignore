@@ -139,3 +139,8 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 *.vsix
+.vscode/
+.mcprules*
+memory-bank/
+.github/
+!.github/workflows/
